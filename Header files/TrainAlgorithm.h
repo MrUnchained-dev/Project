@@ -4,7 +4,7 @@
 #include "ContainerID.h"
 #include "Tiles.h"
 #include <SFML/Graphics.hpp>
-
+#include <random>
 // RAIL IDENTIFICATION = RailID_100
 
 
@@ -161,5 +161,42 @@ void train_algorithm(sf::Sprite &sprite, Tiles map){
                 }
                 break;
         }
+    }
+}
+
+
+void ife(Tiles map){
+    sf::Vector2i pos;
+    int gear = 0;
+
+    switch(gear){
+
+        //Train moving to the east
+        case 1:
+            if(map.TileEntities[pos.y][pos.x+1]->getID() != RailID_100){
+
+            }
+            
+            int arr[] = {0, 0, 0};
+            int count = 0;
+            int highest = 0;
+            int lowest = 2;
+            for(int i = pos.y-1;i <= pos.y+1; i++){
+                if(map.TileEntities[i][pos.x+1]->getID() == RailID_100){
+                    if(count < lowest){
+                        lowest = count;
+                    }
+                    highest = count;
+                    count++;
+                }
+            }
+
+            std::random_device randomNumber;
+            std::mt19937 generate(randomNumber());
+            std::uniform_int_distribution<int> parameters(lowest, highest);
+
+            
+            break;
+
     }
 }
