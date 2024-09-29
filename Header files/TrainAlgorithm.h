@@ -5,6 +5,9 @@
 #include "Tiles.h"
 #include <SFML/Graphics.hpp>
 #include <random>
+
+
+
 // RAIL IDENTIFICATION = RailID_100
 
 
@@ -13,190 +16,246 @@
 //Gear 2 is when the train is moving to the south
 //Gear 3 is when the train is moving to the west
 //Gear 4 is when the train is moving to the north
+const int STOP = 0;
+const int EAST = 1;
+const int SOUTH = 2;
+const int WEST = 3;
+const int NORTH = 4;
+static int gear = 0;
+static float trainSpeed = 2;
+static sf::Vector2i pos(15, 10);
+
+int coinflip(std::vector<int> chosenPath, std::vector<int> paths){
+    if(paths.size() == 0){
+        return 3;
+    }
+    std::random_device randomNumber;
+    std::mt19937 generate(randomNumber());
+
+
+    std::discrete_distribution<int> distribute(paths.begin(), paths.end());
+    int value = chosenPath[distribute(generate)];
+    //std::cout << value << std::endl;
+    return value;
+}
 
 void train_algorithm(sf::Sprite &sprite, Tiles map){
-    static sf::Vector2i trainPosition(15, 10);
-    static int gear = 2;
+    static int suspensionTrigger = 0;
+    static float movementSuspension = 0.f;
+    std::vector<int> paths;
+    std::vector<int> chosenPath;
 
-    static int suspension_trigger = 0;
-    static float movement_suspension = 0.f;
+    float deltaX = trainSpeed/10;
+    float deltaY = deltaX/2;
+    if(suspensionTrigger != 0){
+        switch(suspensionTrigger){
 
-    if(suspension_trigger != 0){
-        switch(suspension_trigger){
-            case 1:
-                if(movement_suspension <= 50.0f){
-                    movement_suspension += 0.05f;
-                    sprite.setPosition(sprite.getPosition().x+0.05f, sprite.getPosition().y-0.025f);
+            case EAST:
+                if(movementSuspension <= 25.0f){
+                    movementSuspension += deltaY;
+                    sprite.setPosition(sprite.getPosition().x+deltaX, sprite.getPosition().y+deltaY);
                 }
-                else {movement_suspension = 0.f; suspension_trigger = 0;} break;
+                else {movementSuspension = 0.f; suspensionTrigger = 0;} break;
 
-            case 2:
-                if(movement_suspension <= 25.0f){
-                    movement_suspension += 0.025f;
-                    sprite.setPosition(sprite.getPosition().x-0.05f, sprite.getPosition().y+0.025f);
+
+            case SOUTH:
+                if(movementSuspension <= 25.0f){
+                    movementSuspension += deltaY;
+                    sprite.setPosition(sprite.getPosition().x-deltaX, sprite.getPosition().y+deltaY);
                 }
-                else {movement_suspension = 0.f; suspension_trigger = 0;} break;
-            case 3:
-                if(movement_suspension <= 50.0f){
-                    movement_suspension += 0.05f;
-                    sprite.setPosition(sprite.getPosition().x-0.05f, sprite.getPosition().y-0.025f);
+                else {movementSuspension = 0.f; suspensionTrigger = 0;} break;
+
+
+            case WEST:
+                if(movementSuspension <= 25.0f){
+                    movementSuspension += deltaY;
+                    sprite.setPosition(sprite.getPosition().x-deltaX, sprite.getPosition().y-deltaY);
                 }
-                else {movement_suspension = 0.f; suspension_trigger = 0;} break;
-            case 4:
-                if(movement_suspension <= 25.0f){
-                    movement_suspension += 0.025f;
-                    sprite.setPosition(sprite.getPosition().x+0.05f, sprite.getPosition().y-0.025f);
+                else {movementSuspension = 0.f; suspensionTrigger = 0;} break;
+
+
+            case NORTH:
+                if(movementSuspension <= 25.0f){
+                    movementSuspension += deltaY;
+                    sprite.setPosition(sprite.getPosition().x+deltaX, sprite.getPosition().y-deltaY);
                 }
-                else {movement_suspension = 0.f; suspension_trigger = 0;} break;
+                else {movementSuspension = 0.f; suspensionTrigger = 0;} break;
         }
     }
-
+    
     else{
         switch(gear){
 
-            //Train moving to the east
-            case 1:
-                //Straight rail
-                if(map.TileEntities[trainPosition.y][trainPosition.x+1]->getID() == RailID_100 && map.TileEntities[trainPosition.y][trainPosition.x+2]->getID() == RailID_100){
-                    trainPosition.x += 1;
-                    suspension_trigger = 1;
-                }
-                //Rail to the left
-                else if(map.TileEntities[trainPosition.y][trainPosition.x+1]->getID() == RailID_100 && map.TileEntities[trainPosition.y-1][trainPosition.x+1]->getID() == RailID_100){
-                    gear = 4;
-                    trainPosition.x += 1;
-                    suspension_trigger = 1;
-                }
-                //Rail to the right
-                else if(map.TileEntities[trainPosition.y][trainPosition.x+1]->getID() == RailID_100 && map.TileEntities[trainPosition.y+1][trainPosition.x+1]->getID() == RailID_100){
-                    gear = 4;
-                    trainPosition.x += 1;
-                    suspension_trigger = 1;
-                }
-                //No rails
-                else{
-                    gear = 0;
-                    trainPosition.x += 1;
-                    suspension_trigger = 1;
-                }
+            case STOP:{
                 break;
+            }
 
 
-            //Train moving to the south
-            case 2:
-                //Straight rail
-                if(map.TileEntities[trainPosition.y+1][trainPosition.x]->getID() == RailID_100 && map.TileEntities[trainPosition.y+2][trainPosition.x]->getID() == RailID_100){
-                    trainPosition.y += 1;
-                    suspension_trigger = 2;
+            case EAST:{
+                if(map.TileEntities[pos.y-1][pos.x]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(0);
                 }
-                //Rail to the left
-                else if(map.TileEntities[trainPosition.y+1][trainPosition.x]->getID() == RailID_100 && map.TileEntities[trainPosition.y+1][trainPosition.x+1]->getID() == RailID_100){
-                    gear = 1;
-                    trainPosition.y += 1;
-                    suspension_trigger = 2;
-                }
-                //Rail to the right
-                else if(map.TileEntities[trainPosition.y+1][trainPosition.x]->getID() == RailID_100 && map.TileEntities[trainPosition.y+1][trainPosition.x-1]->getID() == RailID_100){
-                    gear = 3;
-                    trainPosition.y += 1;
-                    suspension_trigger = 2;
-                }
-                //No rails
-                else{
-                    gear = 0;
-                    trainPosition.y += 1;
-                    suspension_trigger = 2;
-                }
-                break;
 
-            //Train moving to the west
-            case 3:
-                //Straight rail
-                if(map.TileEntities[trainPosition.y][trainPosition.x-1]->getID() == RailID_100 && map.TileEntities[trainPosition.y][trainPosition.x-2]->getID() == RailID_100){
-                    trainPosition.x -= 1;
-                    suspension_trigger = 3;
+                if(map.TileEntities[pos.y][pos.x+1]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(1);
                 }
-                //Rail to the left
-                else if(map.TileEntities[trainPosition.y][trainPosition.x-1]->getID() == RailID_100 && map.TileEntities[trainPosition.y+1][trainPosition.x-1]->getID() == RailID_100){
-                    gear = 2;
-                    trainPosition.x -= 1;
-                    suspension_trigger = 3;
-                }
-                //Rail to the right
-                else if(map.TileEntities[trainPosition.y][trainPosition.x-1]->getID() == RailID_100 && map.TileEntities[trainPosition.y-1][trainPosition.x-1]->getID() == RailID_100){
-                    gear = 4;
-                    trainPosition.x -= 1;
-                    suspension_trigger = 3;
-                }
-                else{
-                    gear = 0;
-                    trainPosition.x -= 1;
-                    suspension_trigger = 3;
-                }
-                break;
 
-            //Train moving to the north
-            case 4:
-                //Straight rail
-                if(map.TileEntities[trainPosition.y-1][trainPosition.x]->getID() == RailID_100 && map.TileEntities[trainPosition.y-2][trainPosition.x]->getID() == RailID_100){
-                    trainPosition.y -= 1;
-                    suspension_trigger = 4;
+                if(map.TileEntities[pos.y+1][pos.x]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(2);
                 }
-                //Rail to the left
-                else if(map.TileEntities[trainPosition.y-1][trainPosition.x]->getID() == RailID_100 && map.TileEntities[trainPosition.y-1][trainPosition.x-1]->getID() == RailID_100){
-                    gear = 3;
-                    trainPosition.y -= 1;
-                    suspension_trigger = 4;
-                }
-                //Rail to the right
-                else if(map.TileEntities[trainPosition.y-1][trainPosition.x]->getID() == RailID_100 && map.TileEntities[trainPosition.y-1][trainPosition.x+1]->getID() == RailID_100){
-                    gear = 1;
-                    trainPosition.y -= 1;
-                    suspension_trigger = 4;
-                }
-                else{
-                    gear = 0;
-                    trainPosition.y -= 1;
-                    suspension_trigger = 4;
+                
+
+                switch(coinflip(chosenPath, paths)){
+                    case 0:
+                        gear = NORTH;
+                        suspensionTrigger = NORTH;
+                        pos.y -= 1;
+                        break;
+                    case 1:
+                        gear = EAST;
+                        suspensionTrigger = EAST;
+                        pos.x += 1;
+                        break;
+                    case 2:
+                        gear = SOUTH;
+                        suspensionTrigger = SOUTH;
+                        pos.y += 1;
+                        break;
+                    case 3:
+                        gear = STOP;
                 }
                 break;
+            }
+
+
+            case SOUTH:{
+                if(map.TileEntities[pos.y][pos.x-1]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(0);
+                }
+
+                if(map.TileEntities[pos.y+1][pos.x]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(1);
+                }
+
+                if(map.TileEntities[pos.y][pos.x+1]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(2);
+                }
+
+                switch(coinflip(chosenPath, paths)){
+                    case 0:
+                        gear = WEST;
+                        suspensionTrigger = WEST;
+                        pos.x-=1;
+                        break;
+                    case 1:
+                        gear = SOUTH;
+                        suspensionTrigger = SOUTH;
+                        pos.y += 1;
+                        break;
+                    case 2:
+                        gear = EAST;
+                        suspensionTrigger = EAST;
+                        pos.x += 1;
+                        break;
+                    case 3:
+                        gear = STOP;
+                }
+                break;
+            }
+
+
+            case WEST:{
+                if(map.TileEntities[pos.y+1][pos.x]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(0);
+                }
+
+                if(map.TileEntities[pos.y][pos.x-1]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(1);
+                }
+
+                if(map.TileEntities[pos.y-1][pos.x]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(2);
+                }
+
+                switch(coinflip(chosenPath, paths)){
+                    case 0:
+                        gear = SOUTH;
+                        suspensionTrigger = SOUTH;
+                        pos.y += 1;
+                        break;
+                    case 1:
+                        gear = WEST;
+                        suspensionTrigger = WEST;
+                        pos.x -= 1;
+                        break;
+                    case 2:
+                        gear = NORTH;
+                        suspensionTrigger = NORTH;
+                        pos.y -= 1;
+                        break;
+                    case 3:
+                        gear = STOP;
+                }
+                break;
+            }
+
+
+            case NORTH:{
+                if(map.TileEntities[pos.y][pos.x-1]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(0);
+                }
+
+                if(map.TileEntities[pos.y-1][pos.x]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(1);
+                }
+
+                if(map.TileEntities[pos.y][pos.x+1]->getID() == RailID_100){
+                    paths.push_back(1);
+                    chosenPath.push_back(2);
+                }
+
+                switch(coinflip(chosenPath, paths)){
+                    case 0:
+                        gear = WEST;
+                        suspensionTrigger = WEST;
+                        pos.x -= 1;
+                        break;
+                    case 1:
+                        gear = NORTH;
+                        suspensionTrigger = NORTH;
+                        pos.y -= 1;
+                        break;
+                    case 2:
+                        gear = EAST;
+                        suspensionTrigger = EAST;
+                        pos.x += 1;
+                        break;
+                    case 3:
+                        gear = STOP;
+                }
+                break;
+            }
         }
     }
 }
 
 
-void ife(Tiles map){
-    sf::Vector2i pos;
-    int gear = 0;
 
-    switch(gear){
 
-        //Train moving to the east
-        case 1:
-            if(map.TileEntities[pos.y][pos.x+1]->getID() != RailID_100){
 
-            }
-            
-            int arr[] = {0, 0, 0};
-            int count = 0;
-            int highest = 0;
-            int lowest = 2;
-            for(int i = pos.y-1;i <= pos.y+1; i++){
-                if(map.TileEntities[i][pos.x+1]->getID() == RailID_100){
-                    if(count < lowest){
-                        lowest = count;
-                    }
-                    highest = count;
-                    count++;
-                }
-            }
 
-            std::random_device randomNumber;
-            std::mt19937 generate(randomNumber());
-            std::uniform_int_distribution<int> parameters(lowest, highest);
 
-            
-            break;
 
-    }
-}
+
+

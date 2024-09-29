@@ -34,7 +34,7 @@ int main(){
 
 
     sf::ContextSettings settings;
-    settings.antialiasingLevel = 32;
+    settings.antialiasingLevel = 16;
     sf::RenderWindow window(sf::VideoMode(1600, 800), "My window", sf::Style::Default, settings);
     sf::View view(sf::Vector2f(400, 400), sf::Vector2f(1600,800));
 
@@ -94,7 +94,6 @@ int main(){
             }
         }
 
-
         while (window.pollEvent(event)){
         
             switch(event.type){
@@ -107,6 +106,43 @@ int main(){
                         //std::cout << "I have been pressed";
                         Storage::changeNetCash(50);
                     }
+
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Add)){
+                        trainSpeed += 1;
+                    }
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract)){
+                        trainSpeed -= 1;
+                    }
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+                        std::cout << "Train position has been set!" << std::endl;
+                        int i = 0;
+                        int j = 0;
+                        Map.findTile(window.mapPixelToCoords(sf::Mouse::getPosition(window)), j, i);
+                        train.setPosition(getCenterPoint(Map.tiles[i][j]));
+                        pos.x = j; pos.y = i;
+                    }
+
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)){
+                        std::cout << "Train set to the direction East." << std::endl;
+                        gear = 1;
+                    }
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)){
+                        std::cout << "Train set to the direction South." << std::endl;
+                        gear = 2;
+                    }
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)){
+                        std::cout << "Train set to the direction West." << std::endl;
+                        gear = 3;
+                    }
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num4)){
+                        std::cout << "Train set to the direction North." << std::endl;
+                        gear = 4;
+                    }
+                    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)){
+                        std::cout << "Train direction: " << gear << std::endl;
+                    }
+                    
+
                     break;
                 case sf::Event::Closed:
                     window.close();
@@ -156,7 +192,7 @@ int main(){
 
 
         Map.draw(window);
-        //train_algorithm(train, Map);
+        train_algorithm(train, Map);
         window.draw(train);
         ui.draw(window);
 
