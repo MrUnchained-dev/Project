@@ -12,18 +12,11 @@ public:
     Texture texture;
     int tiles_col;
     int tiles_row;
-    int **TileContainer;                            //TileContainer is for the actual tile things occupying the tiles
     sf::VertexArray **tiles;
 
     sf::Sprite **sprites;
-
     BuildingContainers BuildingCatalogue;
     TileEntity ** *TileEntities;
-
-    /*std::vector<Rail*> arrayRails;
-    std::vector<DefaultHouse*> arrayDefaultHouse;
-    std::vector<ExtraHouse*>  arrayExtraHouse;*/
-
 
     Tiles(int col, int row){            //Row is for X-axis, Col is for Y-axis
         tiles_col = col;
@@ -51,24 +44,6 @@ public:
                 tiles[i][j][1].position = sf::Vector2f(100+50*x,    25+25*y);   tiles[i][j][1].color = sf::Color(0,193,166); 
                 tiles[i][j][2].position = sf::Vector2f(50+50*x,     50+25*y);   tiles[i][j][2].color = sf::Color(120,250,233);
                 tiles[i][j][3].position = sf::Vector2f(0+50*x,      25+25*y);   tiles[i][j][3].color = sf::Color(0,193,166);
-
-
-
-                //tiles[i][j][0].texCoords = sf::Vector2f(400,   213);
-                //tiles[i][j][1].texCoords = sf::Vector2f(800,   413);
-                //tiles[i][j][2].texCoords = sf::Vector2f(400,   613);
-                //tiles[i][j][3].texCoords = sf::Vector2f(0,     413);
-                
-
-                /*tiles[i][j][4].position = sf::Vector2f(0+50*x,      25+25*y); tiles[i][j][4].color = sf::Color(0, 112, 67);
-                tiles[i][j][5].position = sf::Vector2f(50+50*x,     50+25*y);   tiles[i][j][5].color = sf::Color(0, 112, 67);
-                tiles[i][j][6].position = sf::Vector2f(50+50*x,     100+25*y);  tiles[i][j][6].color = sf::Color(0, 112, 67);
-                tiles[i][j][7].position = sf::Vector2f(0+50*x,      75+25*y);   tiles[i][j][7].color = sf::Color(0, 112, 67);
-
-                tiles[i][j][8].position = sf::Vector2f(50+50*x,     50+25*y);   tiles[i][j][8].color = sf::Color(71, 228, 165);
-                tiles[i][j][9].position = sf::Vector2f(100+50*x,    25+25*y);   tiles[i][j][9].color = sf::Color(71, 228, 165);
-                tiles[i][j][10].position = sf::Vector2f(100+50*x,   75+25*y);   tiles[i][j][10].color = sf::Color(71, 228, 165);
-                tiles[i][j][11].position = sf::Vector2f(50+50*x,    100+25*y);  tiles[i][j][11].color = sf::Color(71, 228, 165);*/
 
                 x++; y++;
 

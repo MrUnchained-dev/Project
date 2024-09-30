@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 
+#include "Inventory.h"
 #include "Texture.h"
 #include "Tiles.h"
 #include "Camera.h"
@@ -52,10 +53,12 @@ private:
     Texture textures;
     Camera camera;
     TextUI text;
+    Inventory inventory;
 
 public:
     sf::RectangleShape ButtonEditMap;
     sf::RectangleShape ReverseButtonEditMap;
+    sf::RectangleShape ButtonInventory;
 
     UserInterface(){
         uiView = sf::View(sf::Vector2f(800.0f, 400.0f), sf::Vector2f(1600.0f,800.0f));
@@ -67,6 +70,10 @@ public:
         ReverseButtonEditMap = sf::RectangleShape(sf::Vector2f(100.0f, 100.0f));
         ReverseButtonEditMap.setPosition(1500.0f, 200.0f);
         ReverseButtonEditMap.setFillColor(sf::Color(255, 225, 170));
+
+        ButtonInventory = sf::RectangleShape(sf::Vector2f(100.0f, 100.0f));
+        ButtonInventory.setPosition(1500.0f, 310.0f);
+        ButtonInventory.setFillColor(sf::Color(102, 0, 51));
     }
 
     void draw(sf::RenderWindow &window){
@@ -75,9 +82,10 @@ public:
         text.draw(window);
     }
 
-    void draw(sf::RenderWindow &window, sf::RectangleShape button){
+    void drawEditMode(sf::RenderWindow &window){
         window.setView(uiView);
-        window.draw(button);
+        window.draw(ReverseButtonEditMap);
+        window.draw(ButtonInventory);
     }
 
 
@@ -115,19 +123,25 @@ public:
         while(window.isOpen()){
             
             if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && !holdMode && !holdModeFailed){
+                    if(inventory.active && inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                        inventory.moveList(window);
+                    }
 
-            
-                    if(mouseOverButton(window, ReverseButtonEditMap) && !camera.CameraMoveMode){
-                        //std::cout << " I have ben called";
+                    else if(mouseOverButton(window, ReverseButtonEditMap) && !camera.CameraMoveMode && !inventory.initialListPos){
                         ReverseButtonEditMap.setFillColor(sf::Color(255, 240, 210));
                         buttonPressed = 1;
                     }
 
-                    else if(!map.TileEntities[y][x]->getID() && !buttonPressed){
+                    else if(mouseOverButton(window, ButtonInventory) && !camera.CameraMoveMode && !inventory.initialListPos){
+                        ButtonInventory.setFillColor(sf::Color(204, 0, 102));
+                        buttonPressed = 1;
+                    }
+
+                    else if(!map.TileEntities[y][x]->getID() && !buttonPressed && !inventory.initialListPos){
                         camera.CameraMovement(view, window);}
 
 
-                    else if(map.TileEntities[y][x]->getID() && !buttonPressed){
+                    else if(map.TileEntities[y][x]->getID() && !buttonPressed && !inventory.initialListPos){
                         initialX = x; initialY = y;
                         hoveringX = x; hoveringY = y;
 
@@ -144,19 +158,17 @@ public:
                         map.findTile(worldPos, tempX, tempY);
 
                         if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && x == tempX && y == tempY){
-                            //map.setColor(x,y, sf::Color(180, 255, 255));
                             map.TileEntities[y][x]->colorTileOccupation(map, sf::Color(180, 255, 255));
                             holdMode = true;
                         }
                         else{
-                            //map.setColor(initialX, initialY, sf::Color(255, 255, 255));
                             holdModeFailed = true;}}
                     }   
 
 
-                if(holdMode && (hoveringX != x || hoveringY != y)){
-                    map.TileEntities[initialY][initialX]->tileOccupation(map, window, x, y, hoveringX, hoveringY, arrayTilesX, arrayTilesY);
-                }
+            if(holdMode && (hoveringX != x || hoveringY != y)){
+                map.TileEntities[initialY][initialX]->tileOccupation(map, window, x, y, hoveringX, hoveringY, arrayTilesX, arrayTilesY);
+            }
 
 
             while (window.pollEvent(event)){
@@ -170,6 +182,8 @@ public:
                                 placeDefaultHouse(map, window);
                             }
                             break;
+
+
                     case sf::Event::MouseMoved:
                             if(sleepMode){
                                 break;
@@ -185,25 +199,41 @@ public:
 
 
                     case sf::Event::MouseButtonReleased:
-
-                            //std::cout << "Mouse pressed: Tile: [" << y << "][" << x << "], ID: " << map.TileEntities[y][x]->getID() << std::endl;
-                            //std::cout << "Object id: " << map.TileEntities[y][x]->objectID << ", ID: " << map.TileEntities[y][x]->getID() << std::endl;
-
                             if(camera.InitialCameraPos){
                                 camera.CameraMoveMode = false;
                                 camera.InitialCameraPos = false;
                                 break;
                             }
 
+                            if(inventory.initialListPos){
+                                inventory.initialListPos = false;
+                                break;
+                            }
                             // If the mouse button is being released upon the editButton (buttonPressed = 1 means that it was already pressed on it)
                             if(buttonPressed == 1 && mouseOverButton(window, ReverseButtonEditMap)){
                                 ReverseButtonEditMap.setFillColor(sf::Color(255, 225, 170));
+                                inventory.active = false;
                                 buttonPressed = 2;
+                                break;
+                            }
+                            // Same as previous but for buttonInventory
+                            else if(buttonPressed == 1 && mouseOverButton(window, ButtonInventory)){
+                                ButtonInventory.setFillColor(sf::Color(102, 0, 51));
+                                buttonPressed = 0;
+                                inventory.setPositionsDefault();
+                                if(inventory.active == false){
+                                    inventory.active = true;
+                                }
+                                else{
+                                    inventory.active = false;
+                                }
                                 break;
                             }
                             // If the mouse button is released upon anything else that is not the editButton
                             else{
                                 ReverseButtonEditMap.setFillColor(sf::Color(255, 225, 170));
+                                ButtonInventory.setFillColor(sf::Color(102, 0, 51));
+
                                 buttonPressed = 0;
                             }
 
@@ -217,7 +247,6 @@ public:
 
                             holdMode = false;
                             map.sprites[y][x].setColor(sf::Color::White);
-                            //map.setColor(x, y, sf::Color(255,255,255));
                             break;
 
 
@@ -232,37 +261,13 @@ public:
             if(buttonPressed == 2) {
                 
                 break;}
-
-            //for(int i = 0; i <= 1; i++){
-            //    for(int j = 0; j <= 1; j++){             
-//
-            //        map.tiles[i][j][0].texCoords = sf::Vector2f(2000 + 1000*j - 1000*i,  1533 - 500*(i-j));
-            //        map.tiles[i][j][1].texCoords = sf::Vector2f(3000 + 1000*j - 1000*i,  2033 - 500*(i-j));
-            //        map.tiles[i][j][2].texCoords = sf::Vector2f(2000 + 1000*j - 1000*i,  2533 - 500*(i-j));
-            //        map.tiles[i][j][3].texCoords = sf::Vector2f(1000 + 1000*j - 1000*i,  2033 - 500*(i-j));
-            //                    
-            //    }
-            //}
-            //map.tiles[0][0][0].texCoords = sf::Vector2f(2000,  1533);
-            //map.tiles[0][0][1].texCoords = sf::Vector2f(3000,  2033);
-            //map.tiles[0][0][2].texCoords = sf::Vector2f(2000,  2533);
-            //map.tiles[0][0][3].texCoords = sf::Vector2f(1000,  2033);
-
-            map.tiles[0][0][0].texCoords = sf::Vector2f(2000,  1533);
-            map.tiles[0][0][1].texCoords = sf::Vector2f(3000,  2033);
-            map.tiles[0][0][2].texCoords = sf::Vector2f(2000,  2533);
-            map.tiles[0][0][3].texCoords = sf::Vector2f(1000,  2033);
-
-
-
-
             
             window.clear();
 
             map.draw(window);
             
-            draw(window, ReverseButtonEditMap);
-
+            drawEditMode(window);
+            inventory.draw(window);
             window.setView(view);
             window.display();
         }

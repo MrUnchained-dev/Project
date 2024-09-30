@@ -10,6 +10,8 @@ class Texture{
 private:
     std::unordered_map<int, sf::Sprite> renderTexture;
 
+    std::unordered_map<int, sf::Sprite> inventoryItemTexture;
+
     sf::Texture RailTexture;
     sf::Sprite Rail;
 
@@ -25,9 +27,9 @@ public:
         Rail.setTexture(RailTexture);
         Rail.setOrigin(sf::Vector2f(400, 400));
         Rail.setScale(sf::Vector2f(0.1335f, 0.1335f));
-        //Rail.rotate(180);
 
         renderTexture[RailID_100] = Rail;
+        inventoryItemTexture[RailID_100] = Rail;
 
         if (!DefaultHouseTexture.loadFromFile("Images/houseFinal1.png")){
             std::cout << "Load failed" << std::endl;
@@ -38,6 +40,9 @@ public:
         DefaultHouse.setScale(sf::Vector2f(0.1f, 0.1f));
         renderTexture[DefaultHouseID] = DefaultHouse;
 
+        DefaultHouse.setScale(sf::Vector2f(0.03f, 0.03f));
+        inventoryItemTexture[DefaultHouseID] = DefaultHouse;
+
     }
 
     sf::Sprite getTexture(int id){
@@ -46,6 +51,17 @@ public:
         }
         else{
             return renderTexture[1000];
+        }
+    }
+
+    sf::Sprite getInventoryItemTexture(int id){
+        if(inventoryItemTexture.find(id) != inventoryItemTexture.end()){
+            return inventoryItemTexture[id];
+        }
+        else{
+            std::cout << "Couldn't find itemInventoryItem!" << std::endl;
+            sf::Sprite fail;
+            return fail;
         }
     }
 }; 

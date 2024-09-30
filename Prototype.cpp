@@ -38,18 +38,13 @@ int main(){
     sf::RenderWindow window(sf::VideoMode(1600, 800), "My window", sf::Style::Default, settings);
     sf::View view(sf::Vector2f(400, 400), sf::Vector2f(1600,800));
 
-
-    //UI design
-
-
-
-
     
     int AxisX = 30, AxisY = 30;
     Tiles Map(AxisY,AxisX);              // Initialize the tiles
     UserInterface ui;                    // Initialize the user interface buttons
     Camera camera;                       // Initialize the camera class
     Texture texture;                     // Initialize the texture class
+    Inventory inventory;
 
     sf::Texture hellokitty;
     if (!hellokitty.loadFromFile("Images/hellokitty.png")){
@@ -182,11 +177,6 @@ int main(){
                     break;
             }
         }
-
-        //Map.tiles[0][0][0].texCoords = sf::Vector2f(2000 + 1000,  130);
-        //Map.tiles[0][1][1].texCoords = sf::Vector2f(3000 + 1000,  2033);
-        //Map.tiles[1][0][2].texCoords = sf::Vector2f(2000 + 1000,  2533);
-        //Map.tiles[1][1][3].texCoords = sf::Vector2f(1000 + 1000,  2033);
         window.clear();
 
 
@@ -195,9 +185,6 @@ int main(){
         train_algorithm(train, Map);
         window.draw(train);
         ui.draw(window);
-
-        //resources.setString(std::to_string(Storage::showCash()));
-        //window.draw(ui.text.cashUI); 
         window.setView(view);
         window.display();
     }
