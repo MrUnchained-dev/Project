@@ -10,12 +10,12 @@ void DefaultHouse::tileOccupation(
     std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
 
 
-    if(arrayTilesX == nullptr){                 // Checks whether if the vector is empty (meaning if it's in hold-mode or not)
+    if(arrayTilesX == nullptr){     // Checks whether if the vector is empty (meaning if it's in hold-mode or not)
         int row = botTileY - topTileY + 1;
         arrayTilesX = new std::vector<int>[row];
         arrayTilesY = new std::vector<int>[row];
         
-        // Puts the entitiy's tiles in a 2D-pointer vector
+        // Puts the entity's tiles in a 2D-pointer vector
         int count = 0;
         for(int i = topTileY; i <= botTileY; i++){
              for(int j = topTileX; j <= botTileX; j++){
@@ -61,7 +61,7 @@ void DefaultHouse::tileOccupation(
 }
 
 
-void DefaultHouse::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
     bool tileCollision = false;
     for(int i = 0; i <= 3; i++){
         for(int j = 0; j <= 3; j++){
@@ -189,8 +189,70 @@ void placeDefaultHouse(Tiles&map, sf::RenderWindow &window){
                                                       arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY, 
                                                       arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX);
 
-        //map.sprites[y][x] = map.texture.getTexture(DefaultHouseID);
-        //map.sprites[y][x].setPosition(centerpoint.x, centerpoint.y);
+
+        int iCount = 0;
+        for(int i = topY; i <= botY; i++){
+            int jCount = 0;
+            for(int j = topX; j <= botX; j++){
+                delete map.TileEntities[i][j];
+                map.TileEntities[i][j] = arrayDefaultHouse[arrayDefaultHouse.size()-1];
+
+                map.sprites[i][j] = map.texture.getTexture(DefaultHouseID);
+                map.sprites[i][j].setPosition(centerpoint.x, centerpoint.y);
+
+                jCount += 1;
+                iCount += 1;
+                
+            }
+        }
+        std::cout << "Successful plantation!" << std::endl;
+    }
+    else{
+        std::cout << "No free space" << std::endl;
+    }
+}
+
+
+
+
+
+
+
+void DefaultHouse::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+    sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+    int x = 0; int y = 0;
+    map.findTile(worldPos, x, y);
+
+    int topX = x;
+    int topY = y;
+    int botX = x+3;
+    int botY = y+3;
+
+    bool tileCollision = false;
+
+    for(int i = topY; i <= botY; i++){
+        for(int j = topX; j <= botX; j++){
+
+            if(map.TileEntities[i][j]->getID()){
+                tileCollision = true;
+                break;}
+
+        }
+    }
+
+    if(!tileCollision){
+        map.BuildingCatalogue.addDefaultHouse();
+
+        arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileX = x;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileY = y;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX = x+3;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY = y+3;
+
+
+        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileY, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileX, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX);
 
 
         int iCount = 0;
@@ -216,6 +278,9 @@ void placeDefaultHouse(Tiles&map, sf::RenderWindow &window){
 }
 
 
+
+
+
 void Rail::tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
     if(!map.TileEntities[y][x]->getID()){
         map.setColor(x, y, sf::Color(180, 255, 255));
@@ -228,7 +293,7 @@ void Rail::tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, in
 }
 
 // Used for relocation
-void Rail::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
 
     sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
     int i = 0; int j = 0;
@@ -291,7 +356,7 @@ void Rail::colorTileOccupation(Tiles &map, sf::Color color){
     map.sprites[topTileY][topTileX].setColor(sf::Color(180,255,255));
 }
 
-void placeRail(Tiles &map, sf::RenderWindow &window){
+void Rail::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
 
     sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
     int y = 0; int x = 0;

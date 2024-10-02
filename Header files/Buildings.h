@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "TileEntity.h"
-//#include "Tiles.h"
 #include "Storage.h"
 #include "ContainerID.h"
 
@@ -20,6 +19,7 @@ public:
     void colorTileOccupation(Tiles &map, sf::Color color) override {}
     void tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override{}
     void placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override{}
+    void moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override{}
 };
 
 DefaultTile *addDefaultTile(){
@@ -38,6 +38,7 @@ public:
     void colorTileOccupation(Tiles &map, sf::Color color) override; 
     void tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override;
     void placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override;
+    void moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override;
 
 };
 
@@ -77,6 +78,7 @@ public:
     void colorTileOccupation(Tiles &map, sf::Color color) override;
     void tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override;
     void placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override;
+    void moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override;
 };
 
 class ExtraHouse : public Building{
@@ -90,6 +92,7 @@ public:
     void colorTileOccupation(Tiles &map, sf::Color color) override {};
     void tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override{}
     void placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override{}
+    void moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) override {}
 };
 static std::vector<Rail*> arrayRail;
 static std::vector<DefaultHouse*> arrayDefaultHouse;

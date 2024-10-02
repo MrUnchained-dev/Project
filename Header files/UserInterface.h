@@ -114,6 +114,10 @@ public:
         int initialX, initialY;
         int y = 0; int x = 0;
 
+        bool pickedItem = false;
+        bool holdingitem = false;
+        int itemNumber;
+
         std::vector<int> *arrayTilesX = nullptr;
         std::vector<int> *arrayTilesY = nullptr;
 
@@ -123,9 +127,25 @@ public:
         while(window.isOpen()){
             
             if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && !holdMode && !holdModeFailed){
-                    if(inventory.active && inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                    if(pickedItem && !inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                        inventory.pickedObjectFromInv(map, window, view, itemNumber);
+                        
+                    }
+
+                    if(!pickedItem && inventory.active && inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                        for(int i = 0; i < inventory.ItemsList.size(); i++){
+                            if(inventory.ItemsList[i].ItemHitbox.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                                pickedItem = true;
+                                itemNumber = i;
+                                break;
+                            }
+                        }
                         inventory.moveList(window);
                     }
+
+
+
+
 
                     else if(mouseOverButton(window, ReverseButtonEditMap) && !camera.CameraMoveMode && !inventory.initialListPos){
                         ReverseButtonEditMap.setFillColor(sf::Color(255, 240, 210));
@@ -176,10 +196,14 @@ public:
 
                     case sf::Event::KeyPressed:
                             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
-                                placeRail(map, window);
+                                //placeRail(map, window);
+                                map.BuildingCatalogue.addRail();
+                                inventory.addItemToInventory(textures.getInventoryItemTexture(RailID_100), RailID_100, *arrayRail[arrayRail.size()-1]);
                             }
                             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
-                                placeDefaultHouse(map, window);
+                                //placeDefaultHouse(map, window);
+                                map.BuildingCatalogue.addDefaultHouse();
+                                inventory.addItemToInventory(textures.getInventoryItemTexture(DefaultHouseID), DefaultHouseID, *arrayDefaultHouse[arrayDefaultHouse.size()-1]);
                             }
                             break;
 

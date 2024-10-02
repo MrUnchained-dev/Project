@@ -15,6 +15,7 @@ public:
     int getID() {return ID;}
     virtual void whenClick() = 0;
     virtual void colorTileOccupation(Tiles &map, sf::Color color) = 0;
+    virtual void moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) = 0;
     virtual void tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) = 0;
     virtual void placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY) = 0;
 };
