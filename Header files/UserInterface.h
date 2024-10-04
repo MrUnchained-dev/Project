@@ -114,12 +114,10 @@ public:
         int initialX, initialY;
         int y = 0; int x = 0;
 
-        bool pickedItem = false;
-        bool holdingitem = false;
         int itemNumber;
 
-        std::vector<int> *arrayTilesX = nullptr;
-        std::vector<int> *arrayTilesY = nullptr;
+        std::vector<int> arrayTilesX;
+        std::vector<int> arrayTilesY;
 
         sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
         map.findTile(worldPos, x, y);
@@ -127,25 +125,27 @@ public:
         while(window.isOpen()){
             
             if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && !holdMode && !holdModeFailed){
-                    if(pickedItem && !inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                    if(inventory.pickedItem && !inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
                         inventory.pickedObjectFromInv(map, window, view, itemNumber);
+                        worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                        map.findTile(worldPos, x, y);
+
+
+                        std::cout << "The ID of [" << y << "][" << x <<"] should be: " <<map.TileEntities[y][x]->ID << std::endl;
                         
                     }
 
-                    if(!pickedItem && inventory.active && inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
+                    else if(!inventory.pickedItem && inventory.active && inventory.inventoryBackground.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
                         for(int i = 0; i < inventory.ItemsList.size(); i++){
                             if(inventory.ItemsList[i].ItemHitbox.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))){
-                                pickedItem = true;
+                                inventory.pickedItem = true;
                                 itemNumber = i;
+                                std::cout << "Inventory number " << itemNumber << " has been chosen!" << std::endl;
                                 break;
                             }
                         }
                         inventory.moveList(window);
                     }
-
-
-
-
 
                     else if(mouseOverButton(window, ReverseButtonEditMap) && !camera.CameraMoveMode && !inventory.initialListPos){
                         ReverseButtonEditMap.setFillColor(sf::Color(255, 240, 210));
@@ -158,10 +158,12 @@ public:
                     }
 
                     else if(!map.TileEntities[y][x]->getID() && !buttonPressed && !inventory.initialListPos){
+                        //std::cout << "Camera mode?" << std::endl;
                         camera.CameraMovement(view, window);}
 
 
                     else if(map.TileEntities[y][x]->getID() && !buttonPressed && !inventory.initialListPos){
+                        std::cout << "Pressed on object " << std::endl;
                         initialX = x; initialY = y;
                         hoveringX = x; hoveringY = y;
 
@@ -180,6 +182,7 @@ public:
                         if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && x == tempX && y == tempY){
                             map.TileEntities[y][x]->colorTileOccupation(map, sf::Color(180, 255, 255));
                             holdMode = true;
+                            std::cout << "Holdmode: " << holdMode << std::endl;
                         }
                         else{
                             holdModeFailed = true;}}
@@ -194,35 +197,39 @@ public:
             while (window.pollEvent(event)){
                 switch(event.type){
 
-                    case sf::Event::KeyPressed:
+                    case sf::Event::KeyPressed:{
                             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
                                 //placeRail(map, window);
                                 map.BuildingCatalogue.addRail();
-                                inventory.addItemToInventory(textures.getInventoryItemTexture(RailID_100), RailID_100, *arrayRail[arrayRail.size()-1]);
+                                inventory.addItemToInventory(textures.getInventoryItemTexture(RailID_100), RailID_100, arrayRail[arrayRail.size()-1]);
                             }
                             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
                                 //placeDefaultHouse(map, window);
                                 map.BuildingCatalogue.addDefaultHouse();
-                                inventory.addItemToInventory(textures.getInventoryItemTexture(DefaultHouseID), DefaultHouseID, *arrayDefaultHouse[arrayDefaultHouse.size()-1]);
+                                inventory.addItemToInventory(textures.getInventoryItemTexture(DefaultHouseID), DefaultHouseID, arrayDefaultHouse[arrayDefaultHouse.size()-1]);
                             }
-                            break;
+                            break;}
 
 
-                    case sf::Event::MouseMoved:
+                    case sf::Event::MouseMoved:{
                             if(sleepMode){
                                 break;
                             }
                             worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                             map.findTile(worldPos, x, y);
-                            break;
+                            break;}
 
 
-                    case sf::Event::Closed:
+                    case sf::Event::Closed:{
                             window.close();
-                            break;
+                            break;}
 
 
-                    case sf::Event::MouseButtonReleased:
+                    case sf::Event::MouseButtonReleased:{
+                            std::cout << "Here?" << std::endl;
+
+
+
                             if(camera.InitialCameraPos){
                                 camera.CameraMoveMode = false;
                                 camera.InitialCameraPos = false;
@@ -251,9 +258,10 @@ public:
                                 else{
                                     inventory.active = false;
                                 }
+                                inventory.pickedItem = false;
                                 break;
                             }
-                            // If the mouse button is released upon anything else that is not the editButton
+                            // If the mouse button is released upon anything else that is not the edit-buttons
                             else{
                                 ReverseButtonEditMap.setFillColor(sf::Color(255, 225, 170));
                                 ButtonInventory.setFillColor(sf::Color(102, 0, 51));
@@ -261,26 +269,27 @@ public:
                                 buttonPressed = 0;
                             }
 
+                            std::cout << "Mousebutton released" << std::endl;
 
                             holdModeFailed = false;
                             if(holdMode == true && map.TileEntities[y][x]->getID() >= 0){
-
-                                map.TileEntities[initialY][initialX]->placeEntity(map, window, arrayTilesX, arrayTilesY);
+                                std::cout << "Holdmode was true" << std::endl;
+                                map.TileEntities[initialY][initialX]->moveEntity(map, window, arrayTilesX, arrayTilesY);
 
                             }
 
                             holdMode = false;
                             map.sprites[y][x].setColor(sf::Color::White);
-                            break;
+                            break;}
 
 
-                    case sf::Event::MouseWheelScrolled:
+                    case sf::Event::MouseWheelScrolled:{
                             Zoom(view, event);
-                            break;
+                            break;}
 
 
-                    default:
-                            break;}}
+                    default:{
+                            break;}}}
 
             if(buttonPressed == 2) {
                 

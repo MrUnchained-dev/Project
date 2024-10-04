@@ -164,7 +164,7 @@ int main(){
                         if(containerID == 0 && Map.TotalTileBoundary(worldPosition.x, worldPosition.y, Map.tiles_row, Map.tiles_col)){
                             int i = 0; int j = 0;
                             Map.findTile(worldPosition, j, i);
-                            std::cout << "Tile: [" << i << "][" << j << "]" << std::endl;
+                            std::cout << "Tile: [" << i << "][" << j << "], ID number: " << Map.TileEntities[i][j]->ID << std::endl;
                         }
                     }
                     containerID = 0;

@@ -3,7 +3,6 @@
 #include <SFML/Graphics.hpp>
 #include "Texture.h"
 #include "Buildings.h"
-//#include "BuildingsImplementation.h"
 #include <vector>
 
 class Tiles{
@@ -13,10 +12,10 @@ public:
     int tiles_col;
     int tiles_row;
     sf::VertexArray **tiles;
-
     sf::Sprite **sprites;
-    BuildingContainers BuildingCatalogue;
     TileEntity ** *TileEntities;
+
+    BuildingContainers BuildingCatalogue;
 
     Tiles(int col, int row){            //Row is for X-axis, Col is for Y-axis
         tiles_col = col;

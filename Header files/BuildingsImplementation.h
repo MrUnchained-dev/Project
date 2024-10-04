@@ -7,25 +7,19 @@
 
 void DefaultHouse::tileOccupation(
     Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY,
-    std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+    std::vector<int> &arrayTilesX, std::vector<int> &arrayTilesY){
 
 
-    if(arrayTilesX == nullptr){     // Checks whether if the vector is empty (meaning if it's in hold-mode or not)
-        int row = botTileY - topTileY + 1;
-        arrayTilesX = new std::vector<int>[row];
-        arrayTilesY = new std::vector<int>[row];
-        
+    if(arrayTilesX.empty()){     // Checks whether if the vector is empty (meaning if it's in hold-mode or not)
         // Puts the entity's tiles in a 2D-pointer vector
-        int count = 0;
         for(int i = topTileY; i <= botTileY; i++){
-             for(int j = topTileX; j <= botTileX; j++){
-                arrayTilesX[count].push_back(j);
-                arrayTilesY[count].push_back(i);
-            }
-            count += 1;
+                arrayTilesY.push_back(i);
+        }
+        for(int j = topTileX; j <= botTileX; j++){
+            arrayTilesX.push_back(j);
         }
     }
-
+    
     // Calculates the delta of the current mouse-position vs previous mouse-position
     int deltaY = 0;
     int deltaX = 0;
@@ -35,38 +29,44 @@ void DefaultHouse::tileOccupation(
         deltaX = (-1)*(hoveringX - x);}
 
 
-
     // Removes pre-updated tile colors
-    for(int i = arrayTilesY[0][0]; i <= arrayTilesY[3][3]; i++){
-        for(int j = arrayTilesX[0][0]; j <= arrayTilesX[3][3]; j++){
+    for(int i = arrayTilesY[0]; i <= arrayTilesY[3]; i++){
+        for(int j = arrayTilesX[0]; j <= arrayTilesX[3]; j++){
+            //std::cout << "Pre-updated tiles: [" << i << "][" << j << "]" << std::endl;
             map.setColor(j, i, sf::Color(255, 255, 255));
         }}
 
 
     // Updates the position of the tiles in respect to the delta 
-    // and also colors them based on the tile availability (blue for available, red for unavailable)
+    for(int i = 0; i <= 3; i++){
+        arrayTilesY[i] += deltaY;
+    }
+    for(int j = 0; j <= 3; j++){
+        arrayTilesX[j] += deltaX;
+    }
+
+    // Also colors them based on the tile availability (blue for available, red for unavailable)
     for(int i = 0; i <= 3; i++){
         for(int j = 0; j <= 3; j++){
-            arrayTilesX[i][j] += deltaX;
-            arrayTilesY[i][j] += deltaY;
-            if(!map.TileEntities[arrayTilesY[i][j]][arrayTilesX[i][j]]->getID()){
-                map.setColor(arrayTilesX[i][j], arrayTilesY[i][j], sf::Color(180, 255, 255));
+            //std::cout << "Updating the tile positions: " << arrayTilesY[i]<< ", " << arrayTilesX[j] << std::endl;
+            if(!map.TileEntities[arrayTilesY[i]][arrayTilesX[j]]->getID()){
+                map.setColor(arrayTilesX[j], arrayTilesY[i], sf::Color(180, 255, 255));
             }
             else{
-                map.setColor(arrayTilesX[i][j], arrayTilesY[i][j], sf::Color(255, 45, 80));
+                map.setColor(arrayTilesX[j], arrayTilesY[i], sf::Color(255, 45, 80));
             }}}
-
+    //std::cout << "crash why?" << std::endl;
     // The previous mouse position becomes the current one and thus this function goes out of scope 
     hoveringX = x; hoveringY = y;   
 }
 
 
-void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> &arrayTilesX, std::vector<int> &arrayTilesY){
     bool tileCollision = false;
     for(int i = 0; i <= 3; i++){
         for(int j = 0; j <= 3; j++){
 
-            if(map.TileEntities[arrayTilesY[i][j]][arrayTilesX[i][j]]->getID()){
+            if(map.TileEntities[arrayTilesY[i]][arrayTilesX[j]]->getID()){
                 tileCollision = true; 
                 break;
             }
@@ -80,17 +80,17 @@ void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<
     if(!tileCollision){
         int correspondingIndex;
         for(int i = 0; i < arrayDefaultHouse.size(); i++){
-            if(objectID == arrayDefaultHouse[i]->objectID){
+            if(objectID == arrayDefaultHouse[i].objectID){
                 correspondingIndex = i;
                 break;}}
         
 
         // Replaces the new tiles' entities with itself at the new coords while also decoloring
-        for(int i = arrayTilesY[0][0]; i <= arrayTilesY[3][3]; i++){
-            for(int j = arrayTilesX[0][0]; j <= arrayTilesX[3][3]; j++){
+        for(int i = arrayTilesY[0]; i <= arrayTilesY[3]; i++){
+            for(int j = arrayTilesX[0]; j <= arrayTilesX[3]; j++){
 
                 delete map.TileEntities[i][j]; 
-                map.TileEntities[i][j] = arrayDefaultHouse[correspondingIndex];
+                map.TileEntities[i][j] = &arrayDefaultHouse[correspondingIndex];
                 map.setColor(j, i, sf::Color::White);
 
             }
@@ -106,16 +106,16 @@ void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<
             }
         }
 
-        arrayDefaultHouse[correspondingIndex]->topTileX = arrayTilesX[0][0];
-        arrayDefaultHouse[correspondingIndex]->topTileY = arrayTilesY[0][0];
-        arrayDefaultHouse[correspondingIndex]->botTileX = arrayTilesX[3][3];
-        arrayDefaultHouse[correspondingIndex]->botTileY = arrayTilesY[3][3];
+        arrayDefaultHouse[correspondingIndex].topTileX = arrayTilesX[0];
+        arrayDefaultHouse[correspondingIndex].topTileY = arrayTilesY[0];
+        arrayDefaultHouse[correspondingIndex].botTileX = arrayTilesX[3];
+        arrayDefaultHouse[correspondingIndex].botTileY = arrayTilesY[3];
 
         
-        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[correspondingIndex]->topTileY, 
-                                                      arrayDefaultHouse[correspondingIndex]->topTileX, 
-                                                      arrayDefaultHouse[correspondingIndex]->botTileY, 
-                                                      arrayDefaultHouse[correspondingIndex]->botTileX);
+        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[correspondingIndex].topTileY, 
+                                                      arrayDefaultHouse[correspondingIndex].topTileX, 
+                                                      arrayDefaultHouse[correspondingIndex].botTileY, 
+                                                      arrayDefaultHouse[correspondingIndex].botTileX);
         
         
         for(int i = topTileY; i <= botTileY; i++){
@@ -127,8 +127,8 @@ void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<
     }
     else{
 
-        for(int i = arrayTilesY[0][0]; i <= arrayTilesY[3][3]; i++){
-            for(int j = arrayTilesX[0][0]; j <= arrayTilesX[3][3]; j++){
+        for(int i = arrayTilesY[0]; i <= arrayTilesY[3]; i++){
+            for(int j = arrayTilesX[0]; j <= arrayTilesX[3]; j++){
                 map.setColor(j, i, sf::Color::White);
             }
         }
@@ -136,10 +136,8 @@ void DefaultHouse::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<
     }
 
     // Since the block has now been placed, the vector holding the tiles of the entity has to be completely removed
-    delete[] arrayTilesX;
-    delete[] arrayTilesY;
-    arrayTilesX = nullptr;
-    arrayTilesY = nullptr;
+    arrayTilesX.clear();
+    arrayTilesY.clear();
 }
 
 
@@ -149,6 +147,67 @@ void DefaultHouse::colorTileOccupation(Tiles &map, sf::Color color){
             //map.setColor(j, i, color);
             map.sprites[i][j].setColor(color);
         }
+    }
+}
+
+bool DefaultHouse::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> &arrayTilesX, std::vector<int> &arrayTilesY){
+    sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+    int x = 0; int y = 0;
+    map.findTile(worldPos, x, y);
+
+    int topX = x;
+    int topY = y;
+    int botX = x+3;
+    int botY = y+3;
+
+    bool tileCollision = false;
+
+    for(int i = topY; i <= botY; i++){
+        for(int j = topX; j <= botX; j++){
+
+            if(map.TileEntities[i][j]->getID()){
+                tileCollision = true;
+                break;}
+
+        }
+    }
+
+    if(!tileCollision){
+        map.BuildingCatalogue.addDefaultHouse();
+
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileX = x;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileY = y;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileX = x+3;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileY = y+3;
+
+
+        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileY, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileX, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileY, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileX);
+
+
+        for(int i = topY; i <= botY; i++){
+            for(int j = topX; j <= botX; j++){
+                delete map.TileEntities[i][j];
+                map.TileEntities[i][j] = &arrayDefaultHouse[arrayDefaultHouse.size()-1];
+
+                map.sprites[i][j] = map.texture.getTexture(DefaultHouseID);
+                map.sprites[i][j].setPosition(centerpoint.x, centerpoint.y);               
+            }
+        }
+        std::cout << "Successful plantation! The coords are: " << std::endl;
+
+        return true;
+        //for(int i = topY; i <= botY; i++){
+        //    for(int j = topX; j <= botX; j++){
+        //        std::cout << "[" << i << "][" << j << "]" << std::endl;
+        //    }}
+        
+    }
+    else{
+        std::cout << "No free space" << std::endl;
+        return false;
     }
 }
 
@@ -178,34 +237,32 @@ void placeDefaultHouse(Tiles&map, sf::RenderWindow &window){
     if(!tileCollision){
         map.BuildingCatalogue.addDefaultHouse();
 
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileX = x;
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileY = y;
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX = x+3;
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY = y+3;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileX = x;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileY = y;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileX = x+3;
+        arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileY = y+3;
 
 
-        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileY, 
-                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileX, 
-                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY, 
-                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX);
+        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileY, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1].topTileX, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileY, 
+                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1].botTileX);
 
-
-        int iCount = 0;
         for(int i = topY; i <= botY; i++){
-            int jCount = 0;
             for(int j = topX; j <= botX; j++){
                 delete map.TileEntities[i][j];
-                map.TileEntities[i][j] = arrayDefaultHouse[arrayDefaultHouse.size()-1];
+                map.TileEntities[i][j] = &arrayDefaultHouse[arrayDefaultHouse.size()-1];
 
                 map.sprites[i][j] = map.texture.getTexture(DefaultHouseID);
-                map.sprites[i][j].setPosition(centerpoint.x, centerpoint.y);
-
-                jCount += 1;
-                iCount += 1;
-                
+                map.sprites[i][j].setPosition(centerpoint.x, centerpoint.y);                
             }
         }
-        std::cout << "Successful plantation!" << std::endl;
+        std::cout << "Successful plantation! The coords are: " << std::endl;
+
+        for(int i = topY; i <= botY; i++){
+            for(int j = topX; j <= botX; j++){
+                std::cout << "[" << i << "][" << j << "]" << std::endl;
+            }}
     }
     else{
         std::cout << "No free space" << std::endl;
@@ -218,70 +275,11 @@ void placeDefaultHouse(Tiles&map, sf::RenderWindow &window){
 
 
 
-void DefaultHouse::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
-    sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-    int x = 0; int y = 0;
-    map.findTile(worldPos, x, y);
-
-    int topX = x;
-    int topY = y;
-    int botX = x+3;
-    int botY = y+3;
-
-    bool tileCollision = false;
-
-    for(int i = topY; i <= botY; i++){
-        for(int j = topX; j <= botX; j++){
-
-            if(map.TileEntities[i][j]->getID()){
-                tileCollision = true;
-                break;}
-
-        }
-    }
-
-    if(!tileCollision){
-        map.BuildingCatalogue.addDefaultHouse();
-
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileX = x;
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileY = y;
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX = x+3;
-        arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY = y+3;
-
-
-        sf::Vector2f centerpoint = map.getCenterPoint(arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileY, 
-                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->topTileX, 
-                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileY, 
-                                                      arrayDefaultHouse[arrayDefaultHouse.size()-1]->botTileX);
-
-
-        int iCount = 0;
-        for(int i = topY; i <= botY; i++){
-            int jCount = 0;
-            for(int j = topX; j <= botX; j++){
-                delete map.TileEntities[i][j];
-                map.TileEntities[i][j] = arrayDefaultHouse[arrayDefaultHouse.size()-1];
-
-                map.sprites[i][j] = map.texture.getTexture(DefaultHouseID);
-                map.sprites[i][j].setPosition(centerpoint.x, centerpoint.y);
-
-                jCount += 1;
-                iCount += 1;
-                
-            }
-        }
-        std::cout << "Successful plantation!" << std::endl;
-    }
-    else{
-        std::cout << "No free space" << std::endl;
-    }
-}
 
 
 
 
-
-void Rail::tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+void Rail::tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, int &hoveringX, int &hoveringY, std::vector<int> &arrayTilesX, std::vector<int> &arrayTilesY){
     if(!map.TileEntities[y][x]->getID()){
         map.setColor(x, y, sf::Color(180, 255, 255));
     }
@@ -293,7 +291,7 @@ void Rail::tileOccupation(Tiles &map, sf::RenderWindow &window, int x, int y, in
 }
 
 // Used for relocation
-void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> &arrayTilesX, std::vector<int> &arrayTilesY){
 
     sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
     int i = 0; int j = 0;
@@ -301,7 +299,7 @@ void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&a
 
     int correspondingIndex = 0;
     for(int k = 0; k < arrayRail.size(); k++){
-        if(arrayRail[k]->objectID == objectID){
+        if(arrayRail[k].objectID == objectID){
             correspondingIndex = k;
             break;
         }
@@ -311,7 +309,7 @@ void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&a
         // Replaces the new tiles' entities with itself at the new coords while also decoloring
         delete map.TileEntities[i][j]; 
         map.TileEntities[i][j] = nullptr;
-        map.TileEntities[i][j] = arrayRail[correspondingIndex];
+        map.TileEntities[i][j] = &arrayRail[correspondingIndex];
         map.setColor(j, i, sf::Color::White);
 
         
@@ -327,10 +325,10 @@ void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&a
         map.sprites[topTileY][topTileX] = empty;
 
         // Updates the the rail object's coordinates 
-        arrayRail[correspondingIndex]->topTileX = j;
-        arrayRail[correspondingIndex]->topTileY = i;
-        arrayRail[correspondingIndex]->botTileX = j;
-        arrayRail[correspondingIndex]->botTileY = i;
+        arrayRail[correspondingIndex].topTileX = j;
+        arrayRail[correspondingIndex].topTileY = i;
+        arrayRail[correspondingIndex].botTileX = j;
+        arrayRail[correspondingIndex].botTileY = i;
         
         // Set the sprite coordinates
         sf::Vector2f centerpoint = map.getCenterPoint(topTileY, topTileX, botTileY, botTileX);
@@ -347,16 +345,16 @@ void Rail::moveEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&a
 void Rail::colorTileOccupation(Tiles &map, sf::Color color){
     int correspondingIndex;
     for(int i = 0; i < arrayRail.size(); i++){
-        if(objectID == arrayRail[i]->objectID){
+        if(objectID == arrayRail[i].objectID){
             correspondingIndex = i;
             break;
         }
     }
-    //map.setColor(arrayRail[correspondingIndex]->topTileX, arrayRail[correspondingIndex]->topTileY, sf::Color(180,255,255));
+    //map.setColor(arrayRail[correspondingIndex].topTileX, arrayRail[correspondingIndex].topTileY, sf::Color(180,255,255));
     map.sprites[topTileY][topTileX].setColor(sf::Color(180,255,255));
 }
 
-void Rail::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&arrayTilesX, std::vector<int> *&arrayTilesY){
+bool Rail::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> &arrayTilesX, std::vector<int> &arrayTilesY){
 
     sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
     int y = 0; int x = 0;
@@ -366,10 +364,10 @@ void Rail::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&
     if(!map.TileEntities[y][x]->getID()){
         map.BuildingCatalogue.addRail();
 
-        arrayRail[arrayRail.size()-1]->topTileX = x;
-        arrayRail[arrayRail.size()-1]->topTileY = y;
-        arrayRail[arrayRail.size()-1]->botTileX = x;
-        arrayRail[arrayRail.size()-1]->botTileY = y;
+        arrayRail[arrayRail.size()-1].topTileX = x;
+        arrayRail[arrayRail.size()-1].topTileY = y;
+        arrayRail[arrayRail.size()-1].botTileX = x;
+        arrayRail[arrayRail.size()-1].botTileY = y;
 
 
         // Installs sprites
@@ -380,9 +378,12 @@ void Rail::placeEntity(Tiles &map, sf::RenderWindow &window, std::vector<int> *&
         // Deletes the standard DefaultTile object that the tile is pointing at
         delete map.TileEntities[y][x];
         map.TileEntities[y][x] = nullptr;
-        map.TileEntities[y][x] = arrayRail[arrayRail.size()-1];
+        map.TileEntities[y][x] = &arrayRail[arrayRail.size()-1];
+
+        return true;
     }
     else{
         std::cout << "Tile Occupied!" << std::endl;
+        return false;
     }
 }
